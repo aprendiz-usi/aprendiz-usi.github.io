@@ -1,5 +1,5 @@
 # Aprendiz SENAI · KSB Usinagem
 
-Casca do app (PWA) para celular e PC. Versão 2.6.0.
+App (PWA) para celular e PC. Versão 2.6.1.
 
-Este repositório não tem dados nem endereço do sistema: o link chega pelo botão **Instalar app** do sistema e fica só no aparelho.
+Abre o sistema dos aprendizes em tela cheia. Não tem dados: tudo fica na planilha, e sem login não se vê nada.
