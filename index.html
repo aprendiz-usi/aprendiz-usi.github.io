@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#003D71">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Aprendiz SENAI · KSB</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icones/favicon.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="icones/icone-192.png">
+<link rel="apple-touch-icon" href="icones/apple-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Aprendiz">
+<style>
+/* APRENDIZ SENAI (celular) - KSB Brasil · Usinagem · versão 2.6.0
+   Casca do app: abre o sistema do Google Apps Script em tela cheia.
+   Nada sensível aqui: o endereço do sistema chega pelo link (depois do #) e fica só no aparelho. */
+:root{--azul:#0066B3;--azul-esc:#003D71;--txt:#1B2631;--mut:#6B7C8D;--card:#fff;--topo:env(safe-area-inset-top,0px);--baixo:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#F2F5F9;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:var(--txt)}
+body.app{background:#fff}
+#quadro{position:fixed;left:0;right:0;top:var(--topo);bottom:0;width:100%;height:calc(100% - var(--topo));border:0;display:block;background:#fff}
+.faixa{position:fixed;left:0;right:0;top:0;height:var(--topo);background:var(--azul-esc);z-index:2}
+.oculto{display:none!important}
+.entrada{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(24px + var(--topo)) 22px calc(24px + var(--baixo));background:linear-gradient(160deg,#0077C8 0%,#003D71 70%);color:#fff;text-align:center}
+.entrada img.ic{width:84px;height:84px;border-radius:22px;box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.entrada h1{font-size:22px;margin:14px 0 2px}
+.entrada .sub{opacity:.85;font-size:13px;margin-bottom:22px}
+.caixa{background:var(--card);color:var(--txt);border-radius:20px;padding:18px;width:100%;max-width:400px;box-shadow:0 12px 40px rgba(0,0,0,.25);text-align:left;font-size:14px;line-height:1.5}
+.caixa p{margin:0 0 10px}
+.caixa input{width:100%;font:inherit;border:1.5px solid #E3E8EE;border-radius:12px;padding:11px 12px;margin:4px 0 10px}
+.bt{display:flex;width:100%;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:13px 16px;font:inherit;font-weight:600;background:var(--azul);color:#fff;cursor:pointer;margin-top:6px}
+.bt.sec{background:#E8F2FA;color:var(--azul-esc)}
+.msg{font-size:13px;color:#C0392B;min-height:18px}
+.carregando{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:linear-gradient(160deg,#0077C8 0%,#003D71 70%);color:#fff;z-index:3;transition:opacity .3s}
+.carregando img{width:76px;height:76px;border-radius:20px;box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.carregando .gira{width:28px;height:28px;border-radius:50%;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;animation:g 1s linear infinite}
+.carregando small{opacity:.85}
+@keyframes g{to{transform:rotate(360deg)}}
+.rodape{margin-top:18px;font-size:11px;opacity:.7}
+</style>
+</head>
+<body>
+<div class="faixa oculto" id="faixa"></div>
+
+<!-- Primeira vez: sem o endereço do sistema -->
+<section class="entrada oculto" id="tela-link">
+  <img class="ic" src="icones/icone-192.png" alt="">
+  <h1>Aprendiz SENAI</h1>
+  <div class="sub">KSB · Usinagem Jundiaí</div>
+  <div class="caixa">
+    <p><b>Para começar</b>, abra o sistema no PC (ou no navegador do celular), entre com seu login e toque em <b>Instalar app</b>, no alto da tela. O link certo já vem pronto.</p>
+    <p>Ou cole aqui o link do sistema que o monitor passou:</p>
+    <input id="campo-link" type="url" inputmode="url" autocomplete="off" placeholder="https://script.google.com/macros/s/…/exec">
+    <div class="msg" id="msg-link"></div>
+    <button class="bt" id="bt-salvar">Abrir o sistema</button>
+  </div>
+  <div class="rodape">versão 2.6.0</div>
+</section>
+
+<!-- Sem internet -->
+<section class="entrada oculto" id="tela-off">
+  <img class="ic" src="icones/icone-192.png" alt="">
+  <h1>Sem internet</h1>
+  <div class="sub">O sistema precisa de internet para abrir.</div>
+  <div class="caixa">
+    <p>Confira o Wi-Fi ou os dados móveis e tente de novo.</p>
+    <button class="bt" id="bt-tentar">Tentar de novo</button>
+  </div>
+</section>
+
+<!-- Instalar (quando o navegador oferece) -->
+<section class="entrada oculto" id="tela-instalar">
+  <img class="ic" src="icones/icone-192.png" alt="">
+  <h1>Aprendiz SENAI</h1>
+  <div class="sub">Instale para abrir direto da tela inicial (ou da área de trabalho, no PC), em tela cheia.</div>
+  <div class="caixa">
+    <div id="dica-ios" class="oculto">
+      <p><b>No iPhone (Safari):</b> toque em <b>Compartilhar</b> (o quadrado com a seta) e depois em <b>Adicionar à Tela de Início</b>.</p>
+      <p>Depois abra pelo ícone <b>Aprendiz</b>.</p>
+    </div>
+    <button class="bt oculto" id="bt-instalar">Instalar o app</button>
+    <button class="bt sec" id="bt-continuar">Continuar no navegador</button>
+  </div>
+</section>
+
+<div class="carregando oculto" id="carregando">
+  <img src="icones/icone-192.png" alt="">
+  <div class="gira"></div>
+  <small>Abrindo o sistema…</small>
+</div>
+
+<iframe id="quadro" class="oculto" title="Aprendiz SENAI" allow="clipboard-write" referrerpolicy="no-referrer"></iframe>
+
+<script>
+(function () {
+  'use strict';
+  var CHAVE = 'aprendiz-senai-app';
+  var MODELO = /^https:\/\/script\.google\.com\/(a\/[^\/]+\/)?macros\/s\/[A-Za-z0-9_-]{20,}\/exec$/;
+  var $ = function (id) { return document.getElementById(id); };
+  var mostrar = function (id) {
+    ['tela-link', 'tela-off', 'tela-instalar', 'carregando', 'quadro', 'faixa'].forEach(function (x) { $(x).classList.add('oculto'); });
+    [].slice.call(arguments).forEach(function (x) { $(x).classList.remove('oculto'); });
+    document.body.classList.toggle('app', arguments[0] === 'quadro' || arguments[0] === 'carregando');
+  };
+  var ler = function () { try { return localStorage.getItem(CHAVE) || ''; } catch (e) { return ''; } };
+  var gravar = function (v) { try { localStorage.setItem(CHAVE, v); } catch (e) {} };
+
+  // O endereço chega depois do # (não vai para nenhum servidor) e fica guardado só neste aparelho.
+  // O # continua na barra: no iPhone, o "Adicionar à Tela de Início" guarda o endereço com ele.
+  function doHash() {
+    var m = /[#&]app=([^&]+)/.exec(location.hash || '');
+    if (!m) return '';
+    var u = ''; try { u = decodeURIComponent(m[1]).trim(); } catch (e) { return ''; }
+    return MODELO.test(u) ? u : '';
+  }
+
+  var instalado = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  var ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var pedido = null;
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault(); pedido = e;
+    $('bt-instalar').classList.remove('oculto');
+  });
+
+  function abrir(url) {
+    if (!navigator.onLine) { mostrar('tela-off'); return; }
+    mostrar('carregando');
+    var q = $('quadro');
+    q.onload = function () { mostrar('quadro', 'faixa'); };
+    q.src = url + '?app=celular';
+    // Se o Google demorar, mostra assim mesmo (a tela de login do sistema tem o próprio aviso).
+    setTimeout(function () { if (!$('carregando').classList.contains('oculto')) mostrar('quadro', 'faixa'); }, 12000);
+  }
+
+  function iniciar() {
+    var url = doHash() || ler();
+    if (doHash()) gravar(doHash());
+    if (!url) { mostrar('tela-link'); return; }
+    if (!instalado && !sessionStorage.getItem('aprendiz-continuar')) {
+      if (ios) $('dica-ios').classList.remove('oculto');
+      mostrar('tela-instalar');
+      return;
+    }
+    abrir(url);
+  }
+
+  $('bt-salvar').onclick = function () {
+    var u = $('campo-link').value.trim().split('?')[0].split('#')[0];
+    if (!MODELO.test(u)) { $('msg-link').textContent = 'Esse não parece o link do sistema (termina em /exec).'; return; }
+    gravar(u);
+    if (!/[#&]app=/.test(location.hash)) history.replaceState(null, '', '#app=' + encodeURIComponent(u));
+    iniciar();
+  };
+  $('bt-tentar').onclick = iniciar;
+  $('bt-continuar').onclick = function () { try { sessionStorage.setItem('aprendiz-continuar', '1'); } catch (e) {} abrir(doHash() || ler()); };
+  $('bt-instalar').onclick = function () {
+    if (!pedido) return;
+    pedido.prompt();
+    pedido.userChoice.then(function () { pedido = null; $('bt-instalar').classList.add('oculto'); });
+  };
+  window.addEventListener('online', function () { if (!$('tela-off').classList.contains('oculto')) iniciar(); });
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+  iniciar();
+})();
+</script>
+</body>
+</html>
