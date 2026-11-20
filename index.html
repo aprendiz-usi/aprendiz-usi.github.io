@@ -16,7 +16,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Aprendiz">
 <style>
-/* APRENDIZ SENAI (celular) - KSB Brasil · Usinagem · versão 2.6.2
+/* APRENDIZ SENAI (celular) - KSB Brasil · Usinagem · versão 2.6.3
    Casca do app: abre o sistema do Google Apps Script em tela cheia.
    Abre direto na tela de login do sistema (mesmo padrão do calendário de Férias). Os dados ficam na planilha. */
 :root{--azul:#0066B3;--azul-esc:#003D71;--txt:#1B2631;--mut:#6B7C8D;--card:#fff;--topo:env(safe-area-inset-top,0px);--baixo:env(safe-area-inset-bottom,0px)}
@@ -115,8 +115,13 @@ body.app{background:#fff}
   // O sistema pede para trocar a página (login, sair, voltar ao login). Só aceita endereços do próprio sistema.
   window.addEventListener('message', function (e) {
     var d = e.data || {};
-    if (d.tipo !== 'aprendiz-ir' || typeof d.url !== 'string' || d.url.split('?')[0] !== APP) return;
-    var url = d.url.indexOf('app=celular') >= 0 ? d.url : d.url + (d.url.indexOf('?') >= 0 ? '&' : '?') + 'app=celular';
+    if (d.tipo !== 'aprendiz-ir' || typeof d.url !== 'string') return;
+    // O Google pode devolver o endereço escrito de outro jeito (/a/macros/dominio/..., outro id da mesma implantação).
+    // Aceita qualquer /exec do script.google.com, mas sempre abre o endereço oficial (APP) com os mesmos parâmetros.
+    var partes = d.url.split('?');
+    if (!/^https:\/\/script\.google\.com\/.*\/exec$/.test(partes[0]) && partes[0] !== APP) return;
+    var q = (partes[1] || '').replace(/(^|&)app=celular(&|$)/, '$1').replace(/&$/, '');
+    var url = APP + '?' + (q ? q + '&' : '') + 'app=celular';
     mostrar('carregando');
     $('quadro').src = url;
   });
